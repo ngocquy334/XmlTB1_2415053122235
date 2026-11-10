@@ -127,3 +127,91 @@ namespace XmlTB1_2415053122235
             Console.WriteLine($"So phong ban: {n}");
             Console.WriteLine($"So nhan vien: {m}");
         }
+        static void XuLyXPath(XPathNavigator nav, string xpathExpr)
+        {
+            if (string.IsNullOrEmpty(xpathExpr))
+            {
+                Console.WriteLine("Bieu thuc XPath khong hop le");
+                return;
+            }
+            try
+            {
+                object result = nav.Evaluate(xpathExpr);
+
+                if (result is XPathNodeIterator iter)
+                {
+                    if (iter.Count == 0)
+                    {
+                        Console.WriteLine("Khong co ket qua");
+                        return;
+                    }
+                    while (iter.MoveNext())
+                    {
+                        XPathNavigator node = iter.Current;
+                        Console.WriteLine($"{node.Name}: {node.Value}");
+                    }
+                }
+                else if (result is bool b)
+                {
+                    Console.WriteLine(b ? "true" : "false");
+                }
+                else if (result is double d)
+                {
+                    Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
+                }
+                else if (result is string s)
+                {
+                    Console.WriteLine(s);
+                }
+                else
+                {
+                    Console.WriteLine(result.ToString());
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Bieu thuc XPath khong hop le");
+            }
+        }
+        static void XuLyThuong(XPathNavigator nav)
+        {
+            XPathNodeIterator iter = nav.Select("//nhanvien");
+
+            bool coNhanVien = false;
+            long tongThuong = 0;
+            while (iter.MoveNext())
+            {
+                XPathNavigator nv = iter.Current;
+                string namVaoLamStr = nv.GetAttribute("namvaolam", "") ?? "";
+                if (int.TryParse(namVaoLamStr, out int namVaoLam))
+                {
+                    int thamNien = 2026 - namVaoLam;
+                    if (thamNien >= 5)
+                    {
+                        string ma = nv.GetAttribute("ma", "") ?? "";
+                        XPathNavigator nodeHoten = nv.SelectSingleNode("hoten");
+                        XPathNavigator nodeLuong = nv.SelectSingleNode("luong");
+                        string hoten = nodeHoten != null ? nodeHoten.Value : "";
+                        long luong = 0;
+                        if (nodeLuong != null)
+                        {
+                            long.TryParse(nodeLuong.Value, out luong);
+                        }
+                        long thuong = (long)Math.Floor(luong * 1.5);
+                        tongThuong += thuong;
+                        coNhanVien = true;
+                        Console.WriteLine($"{ma} - {hoten}: {thuong}");
+                    }
+                }
+            }
+            if (!coNhanVien)
+            {
+                Console.WriteLine("Khong co nhan vien duoc thuong");
+            }
+            else
+            {
+                Console.WriteLine($"Tong thuong: {tongThuong}");
+            }
+        }
+    }
+}
